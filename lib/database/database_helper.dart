@@ -13,8 +13,8 @@ class DbHelper {
 
   ParseUser? getUser() => user;
   Future<void> initParse() async {
-    const keyApplicationId = '5biWTbbnmxc6KnaQbDiG2TUd7CGzQtoE5jhCP7aK';
-    const keyClientKey = 'd6gL5Uqh2Qs36nITF37yA252UFf1021VxqQafUO9';
+    const keyApplicationId = '';
+    const keyClientKey = '';
     const keyParseServerUrl = 'https://parseapi.back4app.com/';
 
     await Parse().initialize(
