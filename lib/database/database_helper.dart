@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moti_me/database/rem_helper.dart';
+import 'package:moti_me/database/task_helper.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'ref_helper.dart';
 
@@ -60,19 +61,22 @@ class DbHelper {
     }
   }
 
-  Future<void> userLogout(RefHelper refHelper, RemHelper remHelper) async {
+  Future<void> userLogout(RefHelper refHelper, RemHelper remHelper, TaskHelper taskHelper) async {
     if (user != null) {
       refHelper.clearReflection();
       remHelper.clearReminders();
+      taskHelper.clearTasks();
       await user?.logout();
     } else {
       print('smt wrong');
     }
   }
 
-  Future<void> initUserData(RefHelper refHelper, RemHelper remHelper) async {
+  Future<void> initUserData(
+      RefHelper refHelper, RemHelper remHelper, TaskHelper taskHelper) async {
     await refHelper.loadReflections(getUser()!);
     await remHelper.loadReminders(getUser()!);
+    await taskHelper.loadTasks(getUser()!);
   }
 }
 

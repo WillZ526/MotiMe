@@ -6,7 +6,8 @@ import 'package:moti_me/database/rem_helper.dart';
 import 'package:moti_me/themes.dart';
 
 DateTime selectedEndDate = DateTime.now();
-final DateFormat formatter = DateFormat('yyyy/MM/dd');
+final DateFormat formatter = DateFormat('MM/dd/yyy');
+final DateFormat timeFormatter = DateFormat('h:mm a');
 
 class Reminder extends StatefulWidget {
   const Reminder({super.key, required this.remHelper, required this.dbHelper});
@@ -20,20 +21,14 @@ class Reminder extends StatefulWidget {
 class ReminderState extends State<Reminder> {
   List<Widget> curRem = [];
 
-  void clearReminders() {
-    setState(() {
-      curRem = [];
-    });
-  }
-
   void getList(BuildContext context) {
     curRem = [];
     final List<DateTime> dates = widget.remHelper.getEndDate();
     final List<String> titles = widget.remHelper.getTitles();
     final Map<String, String> data = widget.remHelper.getData();
     for (int i in List<int>.generate(titles.length, (x) => x)) {
-      curRem.add(item(
-          context, titles[i], data[titles[i]] ?? 'No Descriptions', dates[i], 'Ends On: '));
+      curRem.add(item(context, titles[i], data[titles[i]] ?? 'No Descriptions',
+          dates[i], 'Ends On: '));
     }
   }
 
@@ -76,7 +71,7 @@ class ReminderState extends State<Reminder> {
           ),
           ElevatedButton(
             onPressed: addReminder,
-            child: Themes.bodyMedium('New Reminder', context),
+            child: Themes.titleLarge('New Reminder', context),
           ),
         ],
       ),
@@ -87,14 +82,29 @@ class ReminderState extends State<Reminder> {
 class ReminderForm extends StatefulWidget {
   ReminderForm({super.key, required this.onSubmit});
   final Function(String, String, DateTime) onSubmit;
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descController = TextEditingController();
 
   @override
   State<ReminderForm> createState() => ReminderFormState();
 }
 
 class ReminderFormState extends State<ReminderForm> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  _selectTime(BuildContext context) async {
+    TimeOfDay initTime = TimeOfDay.fromDateTime(selectedEndDate);
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initTime,
+    );
+    if (picked != null && picked != TimeOfDay.fromDateTime(selectedEndDate)) {
+      setState(() {
+        selectedEndDate = DateTime(selectedEndDate.year, selectedEndDate.month,
+            selectedEndDate.day, picked.hour, picked.minute);
+      });
+    }
+  }
+
   _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -104,7 +114,8 @@ class ReminderFormState extends State<ReminderForm> {
     );
     if (picked != null && picked != selectedEndDate) {
       setState(() {
-        selectedEndDate = picked;
+        selectedEndDate = DateTime(picked.year, picked.month, picked.day,
+            selectedEndDate.hour, selectedEndDate.minute);
       });
     }
   }
@@ -113,41 +124,73 @@ class ReminderFormState extends State<ReminderForm> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: widget._titleController,
-            decoration: const InputDecoration(labelText: 'Title'),
-          ),
-          TextField(
-            controller: widget._descController,
-            maxLines: null,
-            decoration: const InputDecoration(labelText: 'Enter Reminder'),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextButton(
-              style: ButtonStyle(
-                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0),
-                side: const BorderSide(color: Colors.black),
-              ))),
-              onPressed: () => _selectDate(context),
-              child: Themes.bodyLarge(
-                  'Select Reminder Date: ${formatter.format(selectedEndDate)}',
-                  context),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(labelText: 'Title'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
             ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await widget.onSubmit(
-                  widget._titleController.text, widget._descController.text, selectedEndDate);
-            },
-            child: const Text('Submit'),
-          ),
-        ],
+            TextFormField(
+              controller: _descController,
+              maxLines: null,
+              decoration: const InputDecoration(labelText: 'Enter Reminder'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a description';
+                }
+                return null;
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextButton(
+                style: ButtonStyle(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                  side: const BorderSide(color: Colors.black),
+                ))),
+                onPressed: () => _selectDate(context),
+                child: Themes.bodyLarge(
+                    'Select Reminder Date: ${formatter.format(selectedEndDate)}',
+                    context),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextButton(
+                style: ButtonStyle(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                  side: const BorderSide(color: Colors.black),
+                ))),
+                onPressed: () => _selectTime(context),
+                child: Themes.bodyLarge(
+                    'Select Task Repeat Time: ${timeFormatter.format(selectedEndDate)}',
+                    context),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState?.validate() ?? false) {
+                  await widget.onSubmit(_titleController.text,
+                      _descController.text, selectedEndDate);
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
       ),
     );
   }

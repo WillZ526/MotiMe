@@ -31,7 +31,7 @@ class RefHelper {
   List<String> getTitles() => titles;
   Map<String, String> getData() => initList;
 
-  Future<void> reloadReflection(ParseUser user) async {
+  Future<void> reloadReflection(ParseUser user) async { 
     parseQuery.whereEqualTo('User', user);
     apiResponse = await parseQuery.query();
   }

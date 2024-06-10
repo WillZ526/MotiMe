@@ -8,6 +8,7 @@ import 'package:moti_me/database/rem_helper.dart';
 import 'package:moti_me/profile.dart';
 import 'package:moti_me/theme.dart';
 import 'package:provider/provider.dart';
+import 'database/task_helper.dart';
 import 'tabs/Reflection.dart';
 import 'tabs/Reminder.dart';
 import 'tabs/Tasks.dart';
@@ -17,11 +18,15 @@ import 'themes.dart';
 final dbHelper = DbHelper();
 final refHelper = RefHelper();
 final remHelper = RemHelper();
+final taskHelper = TaskHelper();
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final List<dynamic> tabs = [
   Reflection(refHelper: refHelper, dbHelper: dbHelper),
-  const Task(),
-  Reminder(remHelper: remHelper, dbHelper: dbHelper,),
+  Task(taskHelper: taskHelper, dbHelper: dbHelper),
+  Reminder(
+    remHelper: remHelper,
+    dbHelper: dbHelper,
+  ),
   const Shop(),
 ];
 void main() async {
@@ -55,7 +60,7 @@ class MyAppState extends State<MyApp> {
               final isLoggedIn = userProvider.isLoggedIn;
               final loggingIn = state.matchedLocation == '/login';
               if (isLoggedIn && loggingIn) {
-                await dbHelper.initUserData(refHelper, remHelper);
+                await dbHelper.initUserData(refHelper, remHelper, taskHelper);
                 return '/task';
               }
               return null;
@@ -158,13 +163,15 @@ class _ScaffoldWithNavigationBarState extends State<ScaffoldWithNavigationBar> {
             sliver: SliverSafeArea(
               top: false,
               sliver: SliverAppBar(
+                backgroundColor: Theme.of(context).primaryColor,
                 actionsIconTheme: Theme.of(context).iconTheme,
                 actions: <Widget>[
                   IconButton(
                     color: Colors.black,
                     icon: const Icon(Icons.logout),
                     onPressed: () async {
-                      await dbHelper.userLogout(refHelper, remHelper);
+                      await dbHelper.userLogout(
+                          refHelper, remHelper, taskHelper);
                       if (context.mounted) {
                         await Provider.of<UserProvider>(context, listen: false)
                             .logout();
@@ -179,12 +186,23 @@ class _ScaffoldWithNavigationBarState extends State<ScaffoldWithNavigationBar> {
                 snap: true,
                 stretch: true,
                 expandedHeight: 200,
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const <StretchMode>[
-                    StretchMode.zoomBackground,
-                    StretchMode.fadeTitle,
-                  ],
-                  background: profile(dbHelper: dbHelper),
+                flexibleSpace: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor,
+                        Theme.of(context).primaryColor,
+                        Theme.of(context).primaryColorLight,
+                      ],
+                    ),
+                  ),
+                  child: FlexibleSpaceBar(
+                    stretchModes: const <StretchMode>[
+                      StretchMode.zoomBackground,
+                      StretchMode.fadeTitle,
+                    ],
+                    background: profile(dbHelper: dbHelper),
+                  ),
                 ),
               ),
             ),
@@ -206,6 +224,7 @@ class _ScaffoldWithNavigationBarState extends State<ScaffoldWithNavigationBar> {
         ],
       ),
       bottomNavigationBar: NavigationBar(
+        indicatorColor: Theme.of(context).primaryColor,
         selectedIndex: widget.navigationShell.currentIndex,
         destinations: const [
           NavigationDestination(

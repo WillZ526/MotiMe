@@ -19,7 +19,7 @@ class profileState extends State<profile> {
             colors: [
               Theme.of(context).primaryColor,
               Theme.of(context).primaryColor,
-              Theme.of(context).secondaryHeaderColor
+              Theme.of(context).primaryColorLight,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

@@ -36,99 +36,93 @@ class LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'MotiMe',
-                      style: TextStyle(
-                        fontSize: 50,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 20.0,
+            right: 20.0,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'MotiMe',
+                  style: TextStyle(
+                    fontSize: 50,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 100),
+              Themes.headlineMedium('Log In to continue', context),
+              const SizedBox(height: 20),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Enter Email';
+                        } else if (!EmailValidator.validate(value)) {
+                          return 'Email Invalid';
+                        }
+                        email = value;
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        labelText: 'Email',
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 100),
-                  Themes.headlineMedium(
-                    'Log In to continue',
-                    context,
-                  ),
-                  const SizedBox(height: 20),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Enter Email';
-                            } else if (!EmailValidator.validate(value)) {
-                              return 'Email Invalid';
-                            }
-                            email = value;
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            labelText: 'Email',
-                          ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Enter Password';
+                        } else if (value.length < 8) {
+                          return 'Password Invalid';
+                        }
+                        password = value;
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(3),
                         ),
-                        const SizedBox(height: 10),
-                        TextFormField(
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Enter Password';
-                            } else if (value.length < 8) {
-                              return 'Password Invalid';
-                            }
-                            password = value;
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            labelText: 'Password',
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              final String temp = await widget.dbHelper
-                                  .userLogin(email!, password!);
-                              if (temp.isEmpty) {
-                                if (context.mounted) {
-                                  await Provider.of<UserProvider>(context,
-                                          listen: false)
-                                      .login();
-                                }
-                              } else {
-                                showError(temp);
-                              }
-                            }
-                          },
-                          child: Themes.headlineSmall('Login', context),
-                        ),
-                      ],
+                        labelText: 'Password',
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          final String temp = await widget.dbHelper
+                              .userLogin(email!, password!);
+                          if (temp.isEmpty) {
+                            if (context.mounted) {
+                              await Provider.of<UserProvider>(context,
+                                      listen: false)
+                                  .login();
+                            }
+                          } else {
+                            showError(temp);
+                          }
+                        }
+                      },
+                      child: Themes.headlineSmall('Login', context),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

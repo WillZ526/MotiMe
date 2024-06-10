@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moti_me/themes.dart';
 import 'package:intl/intl.dart';
 
-final DateFormat formatter = DateFormat('yyyy/MM/dd');
+final DateFormat formatter = DateFormat('MM/dd/yyyy');
 
 Widget item(BuildContext context, String title, String description,
     DateTime createDate, String type) {
@@ -30,14 +30,8 @@ Widget item(BuildContext context, String title, String description,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Themes.titleLarge(title, context),
-                  Themes.titleMedium(
-                      '$type ${formatter.format(createDate)}', context),
-                ],
-              ),
+              Themes.titleLarge(title, context),
+              Themes.titleMedium('$type ${formatter.format(createDate)}', context),
               const SizedBox(height: 10),
               Themes.titleMedium(description, context),
             ],

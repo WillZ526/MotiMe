@@ -1,4 +1,3 @@
-//unfinished!!!
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 class TaskHelper {
@@ -11,10 +10,12 @@ class TaskHelper {
   factory TaskHelper() {
     return _taskHelper;
   }
+  List<String> taskType = [];
   List<int> streak = [];
   List<DateTime> repeatDate = [];
   List<String> titles = [];
   Map<String, String> initList = {};
+  List<ParseObject> tasks = [];
 
   Future<void> loadTasks(ParseUser user) async {
     clearTasks();
@@ -25,13 +26,24 @@ class TaskHelper {
         repeatDate.add(i['repeatDate']);
         titles.add(i['title']);
         initList.addAll({i['title']: i['description']});
+        taskType.add(i['TaskType']);
       }
     }
+    final QueryBuilder<ParseObject> taskQuery =
+        QueryBuilder<ParseObject>(ParseObject('Task'))
+          ..whereEqualTo('User', user);
+
+    final ParseResponse publisherResponse = await taskQuery.query();
+    if (!publisherResponse.success || publisherResponse.result==null) {
+      return;
+    }
+    tasks = publisherResponse.results as List<ParseObject>;
   }
 
   List<DateTime> getRepeatDate() => repeatDate;
   List<String> getTitles() => titles;
   Map<String, String> getData() => initList;
+  List<ParseObject> getTaskList() => tasks;
 
   Future<void> reloadTasks(ParseUser user) async {
     parseQuery.whereEqualTo('User', user);
@@ -51,13 +63,14 @@ class TaskHelper {
   }
 
   Future<void> addTasks(String title, String description, DateTime repeatDate,
-      ParseUser user) async {
-    var profile = ParseObject('Tasks');
+      String taskType, ParseUser user) async {
+    var profile = ParseObject('Task');
     profile.set('title', title);
     profile.set('description', description);
     profile.set('repeatDate', repeatDate);
     profile.set('streak', 1);
     profile.set('User', user);
+    profile.set('TaskType', taskType);
     await profile.save();
     await loadTasks(user);
   }
